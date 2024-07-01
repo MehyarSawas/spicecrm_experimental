@@ -12,8 +12,9 @@
       "projectType": "application",
       "architect": {
         "build": {
-          "builder": "@angular-builders/custom-webpack:browser",
+          "builder": "@angular-builders/custom-esbuild:application",
           "options": {
+            "plugins": ["./build-tools/dynamic-modules-plugin"],
             "allowedCommonJsDependencies": [
               "moment",
               "less",
@@ -21,7 +22,7 @@
             ],
             "outputPath": "dev",
             "index": "index-dev.html",
-            "main": "src/spiceui.ts",
+            "browser": "src/spiceui.ts",
             "tsConfig": "tsconfig.json",
             "aot": true,
             "extractLicenses": false,
@@ -73,7 +74,7 @@
           }
         },
         "serve": {
-          "builder": "@angular-builders/custom-webpack:dev-server",
+          "builder": "@angular-builders/custom-esbuild:dev-server",
           "options": {
             "browserTarget": "core:build",
             "port": 3333,
