@@ -26,7 +26,6 @@
             "tsConfig": "tsconfig.json",
             "aot": true,
             "extractLicenses": false,
-            "buildOptimizer": false,
             "sourceMap": true,
             "optimization": false,
             "styles": [
@@ -48,14 +47,14 @@
             ]
           },
           "configurations": {
+            "outlook": {
+              "index": "outlook-dev.html"
+            },
             "production": {
-              "customWebpackConfig": {
-                "path": "./webpack.config.js",
-                "mergeRules": {
-                  "externals": "replace"
-                }
+              "index": {
+                "output": "index.html",
+                "input": "assets/index.html"
               },
-              "index": "",
               "outputPath": "app",
               "fileReplacements": [
                 {
@@ -63,22 +62,25 @@
                   "with": "environments/environment.prod.ts"
                 }
               ],
-              "optimization": false,
               "outputHashing": "none",
               "sourceMap": false,
               "namedChunks": true,
-              "extractLicenses": true,
-              "vendorChunk": true,
-              "buildOptimizer": true
+              "extractLicenses": true
             }
           }
         },
         "serve": {
           "builder": "@angular-builders/custom-esbuild:dev-server",
           "options": {
-            "browserTarget": "core:build",
+            "buildTarget": "core:build",
             "port": 3333,
             "proxyConfig": "proxy.conf.js"
+          },
+          "configurations": {
+            "outlook": {
+              "buildTarget": "core:build:outlook",
+              "ssl": true
+            }
           }
         }
       }

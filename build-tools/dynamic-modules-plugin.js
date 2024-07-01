@@ -16,7 +16,7 @@ const dynamicImportPlugin = {
 
             build.initialOptions.entryPoints[dynamicModule.chunkName] = dynamicModule.path;
 
-            appendExcludeTreeShakingVariable();
+            appendExcludeTreeShakingVariable(dynamicModule);
         });
     },
 };
@@ -26,14 +26,16 @@ const dynamicImportPlugin = {
  */
 function appendExcludeTreeShakingVariable(dynamicModule) {
     const moduleContent = getContentWithoutExport(dynamicModule.path);
-    const moduleExportsMatch = moduleContent.match(/exports:\s*\[(.+)]/);
+    const moduleExportsMatch = moduleContent.match(/declarations:\s*\[([\s\S]*?)]/);
 
-    if (!moduleExportsMatch[1]) return;
+    if (!moduleExportsMatch || !moduleExportsMatch[1]) return;
 
     const dynamicExports = [];
     const components = moduleExportsMatch[1].split(',');
-
-    components.forEach(c => dynamicExports.push(`'${c}': ${c}`));
+    [...new Set(components)].forEach(c => {
+        if (!c.trim()) return;
+        dynamicExports.push(`'${c.trim()}': ${c.trim()}`);
+    });
 
     fs.writeFileSync(
         dynamicModule.path,
