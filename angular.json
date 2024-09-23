@@ -52,10 +52,15 @@
             },
             "production": {
               "index": {
-                "output": "index.html",
+                "output": "../index.html",
                 "input": "assets/index.html"
               },
-              "outputPath": "app",
+              "outputPath": {
+                "base": "app/",
+                "browser": ""
+              },
+              "optimization": false,
+              "deployUrl": "app/",
               "fileReplacements": [
                 {
                   "replace": "environments/environment.ts",
