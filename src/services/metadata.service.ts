@@ -6,7 +6,7 @@ import {
     ComponentRef,
     EventEmitter,
     Injectable,
-    Injector,
+    Injector, isDevMode,
     ViewContainerRef
 } from "@angular/core";
 import {HttpClient} from "@angular/common/http";
@@ -20,6 +20,7 @@ import {map} from "rxjs/operators";
 import {SystemNavigationCollector} from "../systemcomponents/components/systemnavigationcollector";
 import {SystemComponentMissing} from "../systemcomponents/components/systemcomponentmissing";
 import {ComponentType} from "@angular/cdk/overlay";
+import {devModeModuleImporter} from "./DynamicModuleLoader";
 
 declare var _;
 
@@ -208,12 +209,20 @@ export class metadata {
      */
     public async importModule(moduleMetadata: { name: string, path: string }): Promise<any> {
 
-        return import(
-            /*
-               webpackInclude: /^\.(\\|\/)[^\\|\/]+(\\|\/)?(\\|\/)[^\\|\/]+?$|(\\|\/)(addcomponents|admincomponents|globalcomponents|objectcomponents|objectfields|portalcomponents|systemcomponents|workbench)(\\|\/)[^\\|\/]+?$|(\\|\/)(modules|include|custom)(\\|\/)[^\\|\/]+(\\|\/)?(\\|\/)[^\\|\/]+?$/
-             */
-            `src/${moduleMetadata.path}.ts`)
-            .then(m => m[moduleMetadata.name]);
+        let importFn: Promise<any>;
+
+        if (!isDevMode()) {
+            const path = `./${moduleMetadata.path.split('/').pop()}.js`;
+            importFn = import(/* @vite-ignore */ path);
+        } else {
+            importFn = devModeModuleImporter(moduleMetadata);
+        }
+
+        return importFn
+            .then(m => m)
+            .catch(e => {
+                console.log(e);
+            });
     }
 
     private renderMissingComponent(vcr: ViewContainerRef, ComponentName: string) {
@@ -255,13 +264,7 @@ export class metadata {
                     return throwError(() => `Module name ${moduleMetadata.name} in the config does not match the class name in the module file.`);
                 }
 
-                let componentType;
-
-                Object.keys(module).some(k => {
-                    if (!module[k].hasOwnProperty('declarations')) return false;
-                    componentType = module[k].declarations.find(f => f.name == componentName);
-                    return true;
-                });
+                let componentType = module[componentName];
 
                 return of(componentType);
 

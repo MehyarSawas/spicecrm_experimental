@@ -14,14 +14,13 @@
         "build": {
           "builder": "@angular-builders/custom-esbuild:application",
           "options": {
-            "plugins": ["./build-tools/dynamic-modules-plugin"],
             "allowedCommonJsDependencies": [
               "moment",
               "less",
               "ts-md5"
             ],
             "outputPath": "dev",
-            "index": "index-dev.html",
+            "index": "./index-dev.html",
             "browser": "src/spiceui.ts",
             "tsConfig": "tsconfig.json",
             "aot": true,
@@ -51,26 +50,26 @@
               "index": "outlook-dev.html"
             },
             "production": {
+              "indexHtmlTransformer": "./build-tools/index-transformer.js",
+              "plugins": ["./build-tools/dynamic-modules-plugin.js"],
               "index": {
-                "output": "../index.html",
+                "output": "./index.html",
                 "input": "assets/index.html"
               },
               "outputPath": {
-                "base": "app/",
+                "base": "app",
                 "browser": ""
               },
-              "optimization": false,
-              "deployUrl": "app/",
               "fileReplacements": [
                 {
                   "replace": "environments/environment.ts",
                   "with": "environments/environment.prod.ts"
                 }
               ],
+              "optimization": true,
               "outputHashing": "none",
               "sourceMap": false,
-              "namedChunks": true,
-              "extractLicenses": true
+              "namedChunks": true
             }
           }
         },

@@ -1,53 +1,38 @@
-const fs = require('fs');
 const dynamicModules = require('./dynamic.config.js');
+const path = require("path");
 
 /**
  * add entry points for the dynamic modules to esbuild to separately bundle the lazy loading modules
- * then append an export variable at the end of the dynamic module typescript file to exclude all its export
- * components from tree shaking
  */
 const dynamicImportPlugin = {
     name: 'dynamic-modules',
     setup(build) {
-
         build.initialOptions.entryNames = '[name]';
+        build.initialOptions.keepNames = true;
 
         dynamicModules.forEach(dynamicModule => {
-
             build.initialOptions.entryPoints[dynamicModule.chunkName] = dynamicModule.path;
+        });
 
-            appendExcludeTreeShakingVariable(dynamicModule);
+        build.onStart(() => {
+            console.log('build started!!');
+        });
+
+        build.onResolve({filter: /DynamicModuleLoader/}, args => {
+            return {
+                path: path.resolve(args.resolveDir, args.path),
+                namespace: 'metadata-service'
+            };
+        });
+
+        build.onLoad({filter: /.+/}, args => {
+            return {
+                contents: 'export function devModeModuleImporter(s) {}',
+                loader: 'ts',
+                resolveDir: path.resolve(__dirname, '../build-tools')
+            }
         });
     },
 };
-
-/**
- * append and export variable to the end of the module typescript file to prevent tree shaking the export components
- */
-function appendExcludeTreeShakingVariable(dynamicModule) {
-    const moduleContent = getContentWithoutExport(dynamicModule.path);
-    const moduleExportsMatch = moduleContent.match(/declarations:\s*\[([\s\S]*?)]/);
-
-    if (!moduleExportsMatch || !moduleExportsMatch[1]) return;
-
-    const dynamicExports = [];
-    const components = moduleExportsMatch[1].split(',');
-    [...new Set(components)].forEach(c => {
-        if (!c.trim()) return;
-        dynamicExports.push(`'${c.trim()}': ${c.trim()}`);
-    });
-
-    fs.writeFileSync(
-        dynamicModule.path,
-        `${moduleContent}/* dynamic-exports */ export const dynamicComponents = {${dynamicExports.join(',')}};`
-    );
-}
-
-/**
- * get the module typescript file content and trim the added export variable
- */
-function getContentWithoutExport(fileName) {
-    return fs.readFileSync(fileName).toString().replace(/\/\* dynamic-exports \*\/ export const dynamicComponents = \{.+};/, '');
-}
 
 module.exports = [dynamicImportPlugin];

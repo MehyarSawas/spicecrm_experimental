@@ -3,7 +3,7 @@ const path = require('path');
 const dynamicModules = [
     {
         path: path.resolve(__dirname, '../src/admincomponents/admincomponents.module.ts'),
-        chunkName: 'admincomponents'
+        chunkName: 'admincomponents.module'
     },
     {
         path: path.resolve(__dirname, '../src/globalcomponents/globalcomponents.ts'),
@@ -23,7 +23,7 @@ const dynamicModules = [
     },
     {
         path: path.resolve(__dirname, '../src/workbench/workbench.module.ts'),
-        chunkName: 'workbench'
+        chunkName: 'workbench.module'
     },
     {
         path: path.resolve(__dirname, '../src/systemcomponents/systemcomponents.ts'),
@@ -46,7 +46,7 @@ mainDirs.forEach(mainDir => {
         if (!moduleFileInfo) return;
         dynamicModules.push({
             path: path.resolve(mainDir, moduleDir, moduleFileInfo.name),
-            chunkName: moduleDir
+            chunkName: moduleFileInfo.name.replace('.ts', '')
         });
     });
 });
